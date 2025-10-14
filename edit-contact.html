@@ -1,158 +1,118 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Edit Contact</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    .container {
-      background: #fff;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-      width: 350px;
-    }
-
-    h2 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-      color: #444;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      width: 100%;
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    .status {
-      text-align: center;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-
-  <div class="container">
-    <h2>Edit Contact</h2>
-    <form id="editContactForm">
-      <label for="name">Name</label>
-      <input type="text" id="name" placeholder="Enter name" required>
-
-      <label for="phone">Phone</label>
-      <input type="text" id="phone" placeholder="Enter phone" required>
-
-      <label for="email">Email</label>
-      <input type="email" id="email" placeholder="Enter email" required>
-
-      <button type="submit">Save Changes</button>
-      <div class="status" id="status"></div>
+<body onload="getContact()">
+    <div id="avatarImage"></div>
+    <form id="editForm">
+        <label for="firstname">First name</label>
+        <input type="text" name="firstname" id="firstname" readonly><br/>
+        <label for="lastname">Last name</label>
+        <input type="text" name="lastname" id="lastname" readonly><br/>
+        <label for="mobile">Mobile</label>
+        <input type="text" name="mobile" id="mobile" readonly><br/>
+        <label for="email">Email</label>
+        <input type="text" name="email" id="email" readonly><br/>
+        <label for="avatar" id="avatarLabel" hidden>Change profile image</label><br/>
+        <input type="file" name="avatar" id="avatar" hidden><br/>
+        <button type="submit" id="submitForm" hidden>Submit</button>
+        <br/>
     </form>
-  </div>
+    <br/><br/>
+    <button id="homeLink" type="button">Home</button>
+    <button id="editContact" type="button">Edit</button>
+    <button id="deleteContact" type="button">Delete</button>
 
-  <script>
-    const contactId = 36926;
-    const proxyUrl = "https://api.allorigins.win/raw?url=";
-    const baseUrl = "https://mysite.itvarsity.org/api/ContactBook/controller/";
+    <script src="config.js"></script>
+    <script>
+      document.getElementById("homeLink").addEventListener('click', function(){
+          window.open("index.html", "_self");
+      });
+      document.getElementById("editContact").addEventListener('click', editContact);
 
-    const nameInput = document.getElementById("name");
-    const phoneInput = document.getElementById("phone");
-    const emailInput = document.getElementById("email");
-    const statusDiv = document.getElementById("status");
-
-    // Charger les infos du contact
-    async function loadContact() {
-      try {
-        const response = await fetch(proxyUrl + encodeURIComponent(`${baseUrl}get-contact/?id=${contactId}`));
-        if (!response.ok) throw new Error("Failed to fetch data");
-        const contact = await response.json();
-
-        nameInput.value = contact.name || "";
-        phoneInput.value = contact.phone || "";
-        emailInput.value = contact.email || "";
-
-        statusDiv.textContent = "Contact loaded successfully ✅";
-        statusDiv.style.color = "green";
-      } catch (error) {
-        console.error(error);
-        statusDiv.textContent = "Error loading data ❌";
-        statusDiv.style.color = "red";
+      let id = getId();
+      function getId(){
+        var url = window.location.href;
+        var pos = url.search("=");
+        var id = url.slice(pos + 1);
+        return id;
       }
-    }
 
-    // Enregistrer les modifications
-    async function saveContact(e) {
-      e.preventDefault();
+      function getContact(){
+          fetch(rootPath + "controller/get-contact/?id=" + id)
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    displayOutput(data);
+                    console.log(data);
+        })
+      }
+      function homeLink(){
+        window.open("index.html", "_self");
+      }
+     function displayOutput(data){
+  avatarImg = `<img src="${rootPath}controller/uploads/${data[0].avata}" width="200"/>`;
+  document.getElementById("avatarImage").innerHTML = avatarImg;
+  document.getElementById("firstname").value = data[0].firstname;
+  document.getElementById("lastname").value = data[0].lastname;
+  document.getElementById("mobile").value = data[0].mobile;
+  document.getElementById("email").value = data[0].email;
+}
 
-      const updatedContact = {
-        id: contactId,
-        name: nameInput.value,
-        phone: phoneInput.value,
-        email: emailInput.value
-      };
+       function editContact(){
+            document.getElementById("firstname").readOnly = false;
+            document.getElementById("lastname").readOnly = false;
+            document.getElementById("mobile").readOnly = false;
+            document.getElementById("email").readOnly = false;
+            document.getElementById("avatar").hidden = false;
+            document.getElementById("avatarLabel").hidden = false;
+            document.getElementById("submitForm").hidden = false;
+        }
+        
+        document.getElementById("editForm").addEventListener('submit', function(e){
+            e.preventDefault();
+             const form = new FormData(document.getElementById("editForm"));
+             form.append('apiKey', apiKey);
+              form.append('id', id);
 
-      const apiUrl = `${baseUrl}edit-contact/`;
-
-      try {
-        const response = await fetch(proxyUrl + encodeURIComponent(apiUrl), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedContact)
+        fetch(rootPath + "controller/edit-contact/", {
+                method: 'POST',
+                body: form
+            })
+            .then(function(response) {
+                return response.text();
+            })
+            .then(function(data) {
+                if (data == "1") {
+                alert("Contact edited successfully!");
+                homeLink();
+                } else {
+                    alert("Error: " + data);
+                    homeLink();
+                }
+            });     
+            
         });
-
-        if (!response.ok) throw new Error("Error saving contact");
-
-        const result = await response.json();
-        console.log(result);
-
-        statusDiv.textContent = "Contact updated successfully ✅";
-        statusDiv.style.color = "green";
-      } catch (error) {
-        console.error(error);
-        statusDiv.textContent = "Error saving contact ❌";
-        statusDiv.style.color = "red";
-      }
-    }
-
-    document.getElementById("editContactForm").addEventListener("submit", saveContact);
-
-    loadContact();
-  </script>
+        document.getElementById("deleteContact").addEventListener('click', function(){
+            if (confirm("Are you sure you want to delete this contact?")) {
+                fetch(rootPath + "controller/delete-contact/?id=" + id + "&apiKey=" + apiKey)
+                    .then(function(response) {
+                        return response.text();
+                    })
+                    .then(function(data) {
+                        if (data == "1") {
+                            alert("Contact deleted successfully!");
+                            homeLink();
+                        } else {
+                            alert("Error: " + data);
+                            homeLink();
+                        }
+                    });
+            }
+        });
+    </script>
 </body>
 </html>
